@@ -8,6 +8,10 @@ import mlflow.pytorch
 
 from model import SimpleNN
 
+# Set MLflow tracking URI to a directory where Jenkins has write access
+mlflow.set_tracking_uri("file:///var/lib/jenkins/mlflow")
+mlflow.set_experiment("dlops_experiment")
+
 # Load training data
 data_path = "data.csv"
 
