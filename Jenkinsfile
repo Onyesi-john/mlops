@@ -9,19 +9,33 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/Onyesi-john/dlops_testing.git'
+               
             }
         }
 
         stage('Set Up Python Environment') {
             steps {
-                sh 'python3 -m venv venv && source venv/bin/activate'
+                script {
+                    // Set up the virtual environment and install dependencies
+                    sh '''
+                        python3 -m venv venv
+                        . venv/bin/activate
+                        pip install --upgrade pip
+                        pip install -r requirements.txt  // Install dependencies
+                    '''
+                }
             }
         }
 
         stage('Train Model') {
             steps {
-                sh 'python model/train.py'
+                script {
+                    // Activate the virtual environment and run the training script
+                    sh '''
+                        . venv/bin/activate
+                        python3 train.py  // Run the training script directly (since it's in the root folder)
+                    '''
+                }
             }
         }
 
@@ -40,12 +54,6 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
-            steps {
-                sh 'kubectl apply -f deployment/k8s.yaml'
-            }
-        }
-
         stage('Monitor Model Performance') {
             steps {
                 sh 'curl http://localhost:9090/api/v1/query?query=loss'
@@ -55,9 +63,9 @@ pipeline {
         stage('Trigger Auto-Retraining') {
             steps {
                 script {
-                    def loss = sh(script: "python model/check_loss.py", returnStdout: true).trim()
+                    def loss = sh(script: "python check_loss.py", returnStdout: true).trim()
                     if (loss.toDouble() > 0.5) {
-                        sh 'python model/retrain.py'
+                        sh 'python3 retrain.py'
                     }
                 }
             }
