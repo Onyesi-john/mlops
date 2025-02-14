@@ -1,0 +1,6 @@
+artifact_location: file:///home/john/mlops/mlruns/992803906173899520
+creation_time: 1739539391419
+experiment_id: '992803906173899520'
+last_update_time: 1739539391419
+lifecycle_stage: active
+name: dlops_experiment

@@ -1,0 +1,15 @@
+artifact_uri: file:///home/john/mlops/mlruns/992803906173899520/37ca28b102944111ba3560ff8febe134/artifacts
+end_time: 1739539395464
+entry_point_name: ''
+experiment_id: '992803906173899520'
+lifecycle_stage: active
+run_id: 37ca28b102944111ba3560ff8febe134
+run_name: inquisitive-lamb-997
+run_uuid: 37ca28b102944111ba3560ff8febe134
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1739539391470
+status: 3
+tags: []
+user_id: john
