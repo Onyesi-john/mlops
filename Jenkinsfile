@@ -29,15 +29,15 @@ pipeline {
 
         stage('Train Model') {
             steps {
-                script {
-                    // Activate the virtual environment and run the training script
-                    sh '''
-                        . venv/bin/activate
-                        python3 train.py  // Run the training script directly (since it's in the root folder)
-                    '''
-                }
+                 script {
+                       sh '''#!/bin/bash
+                       source venv/bin/activate
+                      python train.py
+                     '''
+                   }
+               }
             }
-        }
+
 
         stage('Build Docker Image') {
             steps {
