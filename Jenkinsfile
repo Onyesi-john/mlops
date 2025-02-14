@@ -2,10 +2,11 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'my-dl-model:latest'
-        GITHUB_REGISTRY = 'ghcr.io'  // GitHub Container Registry
-        GITHUB_REPO = 'mydockerhubuser/my-dl-model'  // Your GitHub repository name
-    }
+    DOCKER_IMAGE = 'latest'
+    GITHUB_REGISTRY = 'ghcr.io'  // GitHub Container Registry
+    GITHUB_REPO = 'Onyesi-john/mlops'  // Replace with your actual GitHub repository name
+   }
+
 
     stages {
         stage('Clone Repository') {
