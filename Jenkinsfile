@@ -4,7 +4,7 @@ pipeline {
     environment {
     DOCKER_IMAGE = 'latest'
     GITHUB_REGISTRY = 'ghcr.io'  // GitHub Container Registry
-    GITHUB_REPO = 'Onyesi-john/mlops'  // Replace with your actual GitHub repository name
+    GITHUB_REPO = 'onyesi-john/mlops'  // Replace with your actual GitHub repository name
    }
 
 
