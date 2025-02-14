@@ -29,23 +29,21 @@ pipeline {
 
         stage('Train Model') {
             steps {
-                 script {
-                       sh '''#!/bin/bash
-                       source venv/bin/activate
-                      python train.py
-                     '''
-                   }
-               }
+                script {
+                    sh '''#!/bin/bash
+                    source venv/bin/activate
+                    python train.py
+                    '''
+                }
             }
+        }
 
-
-        stages {
         stage('Build Docker Image') {
             steps {
                 script {
                     // Authenticate to Docker Hub using the stored credentials
                     withDockerRegistry([credentialsId: 'oyinc-docker']) {
-                        sh 'docker build -t ${IMAGE_NAME} .'
+                        sh 'docker build -t ${DOCKER_IMAGE} .'
                     }
                 }
             }
@@ -56,7 +54,7 @@ pipeline {
                 script {
                     // Authenticate again and push the image to Docker Hub
                     withDockerRegistry([credentialsId: 'oyinc-docker']) {
-                        sh 'docker push ${IMAGE_NAME}'
+                        sh 'docker push ${DOCKER_IMAGE}'
                     }
                 }
             }
