@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'my-dl-model:latest'
-        DOCKER_HUB_REPO = 'mydockerhubuser/my-dl-model'
+        GITHUB_REGISTRY = 'ghcr.io'  // GitHub Container Registry
+        GITHUB_REPO = 'mydockerhubuser/my-dl-model'  // Your GitHub repository name
     }
 
     stages {
@@ -41,20 +42,21 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Authenticate to Docker Hub using the stored credentials
-                    withDockerRegistry([credentialsId: 'oyinc-docker']) {
-                        sh 'docker build -t ${DOCKER_IMAGE} .'
+                    // Authenticate to GitHub Container Registry using Jenkins credentials
+                    withDockerRegistry([credentialsId: 'new_pipeline', url: "https://${GITHUB_REGISTRY}"]) {
+                        // Build the Docker image
+                        sh 'docker build -t ${GITHUB_REGISTRY}/${GITHUB_REPO}:${DOCKER_IMAGE} .'
                     }
                 }
             }
         }
-        
-        stage('Push to Docker Hub') {
+
+        stage('Push to GitHub Container Registry') {
             steps {
                 script {
-                    // Authenticate again and push the image to Docker Hub
-                    withDockerRegistry([credentialsId: 'oyinc-docker']) {
-                        sh 'docker push ${DOCKER_IMAGE}'
+                    // Push the Docker image to GitHub Container Registry
+                    withDockerRegistry([credentialsId: 'new_pipeline', url: "https://${GITHUB_REGISTRY}"]) {
+                        sh 'docker push ${GITHUB_REGISTRY}/${GITHUB_REPO}:${DOCKER_IMAGE}'
                     }
                 }
             }
