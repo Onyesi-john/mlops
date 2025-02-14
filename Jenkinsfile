@@ -39,17 +39,25 @@ pipeline {
             }
 
 
+        stages {
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                script {
+                    // Authenticate to Docker Hub using the stored credentials
+                    withDockerRegistry([credentialsId: 'oyinc-docker']) {
+                        sh 'docker build -t ${IMAGE_NAME} .'
+                    }
+                }
             }
         }
-
+        
         stage('Push to Docker Hub') {
             steps {
-                withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
-                    sh 'docker tag $DOCKER_IMAGE $DOCKER_HUB_REPO:latest'
-                    sh 'docker push $DOCKER_HUB_REPO:latest'
+                script {
+                    // Authenticate again and push the image to Docker Hub
+                    withDockerRegistry([credentialsId: 'oyinc-docker']) {
+                        sh 'docker push ${IMAGE_NAME}'
+                    }
                 }
             }
         }
