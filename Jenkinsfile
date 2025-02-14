@@ -40,16 +40,17 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            steps {
-                script {
-                    // Authenticate to GitHub Container Registry using Jenkins credentials
-                    withDockerRegistry([credentialsId: 'new_pipeline', url: "https://${GITHUB_REGISTRY}"]) {
-                        // Build the Docker image
-                        sh 'docker build -t ${GITHUB_REGISTRY}/${GITHUB_REPO}:${DOCKER_IMAGE} .'
-                    }
-                }
-            }
-        }
+             steps {
+                  script {
+                           // Authenticate to GitHub Container Registry using Jenkins credentials
+                          withDockerRegistry([credentialsId: 'new_pipeline', url: "https://${GITHUB_REGISTRY}"]) {
+                          // Build the Docker image with the correct tag format
+                       sh 'docker build -t ${GITHUB_REGISTRY}/${GITHUB_REPO}:${DOCKER_IMAGE} .'
+                  }
+              }
+           }
+       }
+
 
         stage('Push to GitHub Container Registry') {
             steps {
