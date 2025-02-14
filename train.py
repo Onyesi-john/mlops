@@ -8,7 +8,7 @@ import mlflow.pytorch
 from model import SimpleNN
 
 # Load training data
-data = pd.read_csv("data/train.csv")
+data = pd.read_csv("data.csv")
 X = torch.tensor(data.iloc[:, :-1].values, dtype=torch.float32)
 y = torch.tensor(data.iloc[:, -1].values, dtype=torch.float32).view(-1, 1)
 
