@@ -28,6 +28,21 @@ jobs:
             . venv/bin/activate
             pip install --upgrade pip
             pip install -r requirements.txt
+            pip install pytest pytest-cov
+
+  run_unit_tests:
+    executor: python-executor
+    steps:
+      - checkout
+      - run:
+          name: Run Unit Tests
+          command: |
+            source venv/bin/activate
+            pytest tests/unit --junitxml=test-results.xml --cov=. --cov-report=xml
+      - store_test_results:
+          path: test-results.xml
+      - store_artifacts:
+          path: test-results.xml
 
   train_model:
     executor: python-executor
@@ -39,23 +54,15 @@ jobs:
             source venv/bin/activate
             python train.py
 
-  run_tests:
+  run_integration_tests:
     executor: python-executor
     steps:
       - checkout
       - run:
-          name: Install Dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install --upgrade pip
-            pip install -r requirements.txt
-            pip install pytest pytest-cov
-      - run:
-          name: Run Unit & Integration Tests
+          name: Run Integration Tests
           command: |
             source venv/bin/activate
-            pytest tests/ --junitxml=test-results.xml --cov=. --cov-report=xml
+            pytest tests/integration --junitxml=test-results.xml --cov=. --cov-report=xml
       - store_test_results:
           path: test-results.xml
       - store_artifacts:
@@ -112,15 +119,18 @@ workflows:
       - setup_python_env:
           requires:
             - clone_repo
-      - train_model:
+      - run_unit_tests:
           requires:
             - setup_python_env
-      - run_tests:
+      - train_model:
+          requires:
+            - run_unit_tests
+      - run_integration_tests:
           requires:
             - train_model
       - build_docker:
           requires:
-            - run_tests
+            - run_integration_tests
       - push_docker:
           requires:
             - build_docker
