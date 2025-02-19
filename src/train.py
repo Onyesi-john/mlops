@@ -6,7 +6,7 @@ import pandas as pd
 import mlflow
 import mlflow.pytorch
 
-from model import SimpleNN
+from src.model import SimpleNN
 
 # Set MLflow tracking URI to a directory where Jenkins has write access
 mlflow.set_tracking_uri("file:///var/lib/jenkins/mlflow")
