@@ -21,7 +21,7 @@ pipeline {
                         python3 -m venv venv
                         . venv/bin/activate
                         pip install --upgrade pip
-                        pip install -r requirements.txt  // Install dependencies
+                        pip install -r requirements.txt  
                     '''
                 }
             }
@@ -33,7 +33,7 @@ pipeline {
                     // Activate the virtual environment and run the training script
                     sh '''
                         . venv/bin/activate
-                        python3 train.py  // Run the training script directly (since it's in the root folder)
+                        python3 train.py  
                     '''
                 }
             }
