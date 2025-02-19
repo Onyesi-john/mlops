@@ -1,3 +1,6 @@
+import sys
+import os
+
 import pytest
 import numpy as np
 from train import train_model  # Import your training function
