@@ -1,4 +1,4 @@
-python
+
 import torch
 from src.model import SimpleNN
 

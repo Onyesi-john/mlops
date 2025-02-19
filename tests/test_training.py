@@ -1,4 +1,4 @@
-python
+
 from src.train import train_model  # Assuming you refactor your script into reusable functions
 
 def test_training_process():
