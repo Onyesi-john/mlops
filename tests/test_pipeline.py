@@ -1,6 +1,6 @@
 import sys
 import os
-
+sys.path.insert(0, os.path.abspath(os.path.dirname(file)))
 import pytest
 import numpy as np
 from train import train_model  # Import your training function
