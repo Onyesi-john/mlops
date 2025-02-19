@@ -1,0 +1,126 @@
+version: 2.1
+
+executors:
+  python-executor:
+    docker:
+      - image: python:3.9  # Use appropriate Python version
+    working_directory: ~/project
+
+  docker-executor:
+    docker:
+      - image: docker:20.10.14  # Use latest stable Docker image
+    working_directory: ~/project
+
+jobs:
+  clone_repo:
+    executor: python-executor
+    steps:
+      - checkout
+
+  setup_python_env:
+    executor: python-executor
+    steps:
+      - checkout
+      - run:
+          name: Set Up Python Environment
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+
+  run_tests:
+    executor: python-executor
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+      - run:
+          name: Run Tests
+          command: |
+            source venv/bin/activate
+            pytest tests/ --junitxml=test-results.xml
+
+  train_model:
+    executor: python-executor
+    steps:
+      - checkout
+      - run:
+          name: Train Model
+          command: |
+            source venv/bin/activate
+            python train.py
+
+  build_docker:
+    executor: docker-executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker Image
+          command: |
+            echo "${DOCKER_PASS}" | docker login ghcr.io -u ${DOCKER_USER} --password-stdin
+            docker build -t ghcr.io/onyesi-john/mlops:latest .
+
+  push_docker:
+    executor: docker-executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Push Docker Image to GitHub Container Registry
+          command: |
+            echo "${DOCKER_PASS}" | docker login ghcr.io -u ${DOCKER_USER} --password-stdin
+            docker push ghcr.io/onyesi-john/mlops:latest
+
+  monitor_model:
+    executor: python-executor
+    steps:
+      - run:
+          name: Monitor Model Performance
+          command: |
+            curl http://localhost:9090/api/v1/query?query=loss
+
+  trigger_retrain:
+    executor: python-executor
+    steps:
+      - checkout
+      - run:
+          name: Check Model Performance & Retrain
+          command: |
+            loss=$(python check_loss.py)
+            if (( $(echo "$loss > 0.5" | bc -l) )); then
+              python retrain.py
+            fi
+
+workflows:
+  version: 2
+  pipeline:
+    jobs:
+      - clone_repo
+      - setup_python_env:
+          requires:
+            - clone_repo
+      - run_tests:
+          requires:
+            - setup_python_env
+      - train_model:
+          requires:
+            - run_tests
+      - build_docker:
+          requires:
+            - train_model
+      - push_docker:
+          requires:
+            - build_docker
+      - monitor_model:
+          requires:
+            - push_docker
+      - trigger_retrain:
+          requires:
+            - monitor_model

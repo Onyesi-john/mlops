@@ -2,9 +2,11 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'my-dl-model:latest'
-        DOCKER_HUB_REPO = 'mydockerhubuser/my-dl-model'
-    }
+    DOCKER_IMAGE = 'latest'
+    GITHUB_REGISTRY = 'ghcr.io'  // GitHub Container Registry
+    GITHUB_REPO = 'onyesi-john/mlops'  // Replace with your actual GitHub repository name
+   }
+
 
     stages {
         stage('Clone Repository') {
@@ -21,7 +23,11 @@ pipeline {
                         python3 -m venv venv
                         . venv/bin/activate
                         pip install --upgrade pip
+<<<<<<< HEAD
                         pip install -r requirements.txt  
+=======
+                        pip install -r requirements.txt 
+>>>>>>> af32ea067d2c770e0f576d222f015c5c6d4e874f
                     '''
                 }
             }
@@ -30,26 +36,41 @@ pipeline {
         stage('Train Model') {
             steps {
                 script {
+<<<<<<< HEAD
                     // Activate the virtual environment and run the training script
                     sh '''
                         . venv/bin/activate
                         python3 train.py  
+=======
+                    sh '''#!/bin/bash
+                    source venv/bin/activate
+                    python train.py
+>>>>>>> af32ea067d2c770e0f576d222f015c5c6d4e874f
                     '''
                 }
             }
         }
 
         stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
-            }
-        }
+             steps {
+                  script {
+                           // Authenticate to GitHub Container Registry using Jenkins credentials
+                          withDockerRegistry([credentialsId: 'new_pipeline', url: "https://${GITHUB_REGISTRY}"]) {
+                          // Build the Docker image with the correct tag format
+                       sh 'docker build -t ${GITHUB_REGISTRY}/${GITHUB_REPO}:${DOCKER_IMAGE} .'
+                  }
+              }
+           }
+       }
 
-        stage('Push to Docker Hub') {
+
+        stage('Push to GitHub Container Registry') {
             steps {
-                withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
-                    sh 'docker tag $DOCKER_IMAGE $DOCKER_HUB_REPO:latest'
-                    sh 'docker push $DOCKER_HUB_REPO:latest'
+                script {
+                    // Push the Docker image to GitHub Container Registry
+                    withDockerRegistry([credentialsId: 'new_pipeline', url: "https://${GITHUB_REGISTRY}"]) {
+                        sh 'docker push ${GITHUB_REGISTRY}/${GITHUB_REPO}:${DOCKER_IMAGE}'
+                    }
                 }
             }
         }
