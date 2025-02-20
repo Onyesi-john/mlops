@@ -1,28 +1,31 @@
+"""
+Train script for the SimpleNN model using PyTorch and MLflow.
+"""
+
 import os
 import sys
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from torch import nn, optim  # Updated import style
 import pandas as pd
 import mlflow
 import mlflow.pytorch
+
+# Ensure the script can find local modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from model import SimpleNN
+from model import SimpleNN  # Local import should be placed last
 
 # Set MLflow tracking URI to a directory where Jenkins has write access
 mlflow.set_tracking_uri("file:///tmp/mlflow")
-
-
 mlflow.set_experiment("dlops_experiment")
 
 # Load training data
-data_path = "data.csv"
+DATA_PATH = "data.csv"  # Updated to UPPER_CASE for constant naming convention
 
 # Check if the file exists
-if not os.path.exists(data_path):
-    raise FileNotFoundError(f"Dataset file {data_path} not found. Please make sure the file exists.")
+if not os.path.exists(DATA_PATH):
+    raise FileNotFoundError(f"Dataset file {DATA_PATH} not found. Please make sure the file exists.")
 
-data = pd.read_csv(data_path)
+data = pd.read_csv(DATA_PATH)
 
 # Print out the first few rows of data to verify it's being loaded
 print(f"Data preview:\n{data.head()}")
