@@ -3,13 +3,13 @@ version: 2.1
 executors:
   python-executor:
     docker:
-      - image: python:3.12  # Use appropriate Python version
-    working_directory: ~/mlops  # Updated to match actual directory
+      - image: python:3.12  # Use Python 3.12
+    working_directory: ~/mlops  # Ensure this matches your actual directory
 
   docker-executor:
     docker:
-      - image: docker:20.10.14  # Use latest stable Docker image
-    working_directory: ~/mlops  # Updated to match actual directory
+      - image: docker:20.10.14
+    working_directory: ~/mlops
 
 jobs:
   clone_repo:
@@ -24,20 +24,30 @@ jobs:
       - run:
           name: Set Up Python Environment
           command: |
-            python3 -m venv venv
+            python3 -m venv venv  # Create venv if it doesn't exist
+            ls -la  # Check if venv is created
+            echo "Python version:"
+            python --version
+            echo "Activating venv..."
             . venv/bin/activate
             pip install --upgrade pip
             pip install -r requirements.txt
             pip install pytest pytest-cov
+      - persist_to_workspace:
+          root: .
+          paths:
+            - venv  # Save venv for later steps
 
   run_unit_tests:
     executor: python-executor
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/mlops
       - run:
           name: Run Unit Tests
           command: |
-            source venv/bin/activate
+            . venv/bin/activate
             pytest tests/unit --junitxml=test-results.xml --cov=. --cov-report=xml
       - store_test_results:
           path: test-results.xml
@@ -48,20 +58,24 @@ jobs:
     executor: python-executor
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/mlops
       - run:
           name: Train Model
           command: |
-            source venv/bin/activate
-            python train.py  # Ensure the correct path
+            . venv/bin/activate
+            python train.py
 
   run_integration_tests:
     executor: python-executor
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/mlops
       - run:
           name: Run Integration Tests
           command: |
-            source venv/bin/activate
+            . venv/bin/activate
             pytest tests/integration --junitxml=test-results.xml --cov=. --cov-report=xml
       - store_test_results:
           path: test-results.xml
@@ -102,10 +116,12 @@ jobs:
     executor: python-executor
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/mlops
       - run:
           name: Check Model Performance & Retrain
           command: |
-            source venv/bin/activate
+            . venv/bin/activate
             loss=$(python check_loss.py)
             if (( $(echo "$loss > 0.5" | bc -l) )); then
               python retrain.py
