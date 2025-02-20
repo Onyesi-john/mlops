@@ -48,7 +48,7 @@ jobs:
           name: Run Unit Tests
           command: |
             . venv/bin/activate
-            pytest tests/unit --junitxml=test-results.xml --cov=. --cov-report=xml
+            pytest tests/ --junitxml=test-results.xml --cov=. --cov-report=xml
       - store_test_results:
           path: test-results.xml
       - store_artifacts:
@@ -65,6 +65,7 @@ jobs:
           command: |
             . venv/bin/activate
             python train.py
+            pytest tests/test_train.py --junitxml=test-results.xml --cov=. --cov-report=xml
 
   run_integration_tests:
     executor: python-executor
