@@ -3,13 +3,13 @@ version: 2.1
 executors:
   python-executor:
     docker:
-      - image: python:3.9  # Use appropriate Python version
-    working_directory: ~/project
+      - image: python:3.12  # Use appropriate Python version
+    working_directory: ~/mlops  # Updated to match actual directory
 
   docker-executor:
     docker:
       - image: docker:20.10.14  # Use latest stable Docker image
-    working_directory: ~/project
+    working_directory: ~/mlops  # Updated to match actual directory
 
 jobs:
   clone_repo:
@@ -52,7 +52,7 @@ jobs:
           name: Train Model
           command: |
             source venv/bin/activate
-            python train.py
+            python train.py  # Ensure the correct path
 
   run_integration_tests:
     executor: python-executor
