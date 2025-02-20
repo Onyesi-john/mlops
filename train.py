@@ -23,7 +23,9 @@ DATA_PATH = "data.csv"  # Updated to UPPER_CASE for constant naming convention
 
 # Check if the file exists
 if not os.path.exists(DATA_PATH):
-    raise FileNotFoundError(f"Dataset file {DATA_PATH} not found. Please make sure the file exists.")
+    raise FileNotFoundError(
+        f"Dataset file {DATA_PATH} not found. Please make sure the file exists."
+    )
 
 data = pd.read_csv(DATA_PATH)
 
@@ -45,25 +47,24 @@ optimizer = optim.Adam(model.parameters(), lr=0.01)
 example_input = X[0].numpy()  # Convert tensor to numpy.ndarray
 
 # Log model with input example for signature
-mlflow.set_experiment("dlops_experiment")
 with mlflow.start_run():
     # Train model
     for epoch in range(10):
         # Forward pass
         outputs = model(X)
         loss = criterion(outputs, y)
-        
+
         # Backward pass and optimization
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
-        
+
         # Log the loss for each epoch
         mlflow.log_metric("loss", loss.item(), step=epoch)
-        
+
         # Print progress
         print(f"Epoch [{epoch+1}/10], Loss: {loss.item()}")
-    
+
     # Log the model and the final loss after training
     mlflow.pytorch.log_model(model, "model", input_example=example_input)
     mlflow.log_metric("final_loss", loss.item())
