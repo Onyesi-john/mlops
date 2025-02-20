@@ -3,8 +3,8 @@ version: 2.1
 executors:
   python-executor:
     docker:
-      - image: python:3.12  # Use Python 3.12
-    working_directory: ~/mlops  # Ensure this matches your actual directory
+      - image: python:3.12
+    working_directory: ~/mlops
 
   docker-executor:
     docker:
@@ -24,8 +24,9 @@ jobs:
       - run:
           name: Set Up Python Environment
           command: |
-            python3 -m venv venv  # Create venv if it doesn't exist
-            ls -la  # Check if venv is created
+            set -e  # Stop on error
+            python3 -m venv venv
+            ls -la
             echo "Python version:"
             python --version
             echo "Activating venv..."
@@ -33,7 +34,7 @@ jobs:
             pip install --upgrade pip
             pip install -r requirements.txt
             pip install pytest pytest-cov
-      
+
   train_model:
     executor: python-executor
     steps:
@@ -43,45 +44,51 @@ jobs:
       - run:
           name: Train Model
           command: |
+            set -e  # Stop on error
             . venv/bin/activate
             python train.py
-            pytest tests/test_train.py --junitxml=test-results.xml --cov=. --cov-report=xml
-
-  
+            pytest tests/test_train.py --junitxml=test-results.xml --cov=.
 
   build_docker:
     executor: docker-executor
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true  # Enable caching
       - run:
           name: Build Docker Image
           command: |
+            set -e  # Stop on error
             echo "${DOCKER_PASS}" | docker login ghcr.io -u ${DOCKER_USER} --password-stdin
             docker build -t ghcr.io/onyesi-john/mlops:latest .
+
   run_integration_tests:
     executor: python-executor
     steps:
-      - checkout
       - attach_workspace:
           at: ~/mlops
       - run:
           name: Run Integration Tests
           command: |
+            set -e  # Stop on error
             . venv/bin/activate
-            pytest tests/integration --junitxml=test-results.xml --cov=. --cov-report=xml
+            pytest tests/integration --junitxml=test-results.xml --cov=.
       - store_test_results:
           path: test-results.xml
       - store_artifacts:
           path: test-results.xml
+
   push_docker:
     executor: docker-executor
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 20.10.14
       - run:
           name: Push Docker Image to GitHub Container Registry
           command: |
+            set -e  # Stop on error
             echo "${DOCKER_PASS}" | docker login ghcr.io -u ${DOCKER_USER} --password-stdin
             docker push ghcr.io/onyesi-john/mlops:latest
 
@@ -91,6 +98,7 @@ jobs:
       - run:
           name: Monitor Model Performance
           command: |
+            set -e  # Stop on error
             curl http://localhost:9090/api/v1/query?query=loss
 
   trigger_retrain:
@@ -102,6 +110,7 @@ jobs:
       - run:
           name: Check Model Performance & Retrain
           command: |
+            set -e  # Stop on error
             . venv/bin/activate
             loss=$(python check_loss.py)
             if (( $(echo "$loss > 0.5" | bc -l) )); then
@@ -116,10 +125,9 @@ workflows:
       - setup_python_env:
           requires:
             - clone_repo
-      
       - train_model:
           requires:
-            - run_unit_tests
+            - setup_python_env
       - run_integration_tests:
           requires:
             - train_model
