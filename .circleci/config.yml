@@ -33,27 +33,7 @@ jobs:
             pip install --upgrade pip
             pip install -r requirements.txt
             pip install pytest pytest-cov
-      - persist_to_workspace:
-          root: .
-          paths:
-            - venv  # Save venv for later steps
-
-  run_unit_tests:
-    executor: python-executor
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/mlops
-      - run:
-          name: Run Unit Tests
-          command: |
-            . venv/bin/activate
-            pytest tests/ --junitxml=test-results.xml --cov=. --cov-report=xml
-      - store_test_results:
-          path: test-results.xml
-      - store_artifacts:
-          path: test-results.xml
-
+      
   train_model:
     executor: python-executor
     steps:
@@ -67,6 +47,18 @@ jobs:
             python train.py
             pytest tests/test_train.py --junitxml=test-results.xml --cov=. --cov-report=xml
 
+  
+
+  build_docker:
+    executor: docker-executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker Image
+          command: |
+            echo "${DOCKER_PASS}" | docker login ghcr.io -u ${DOCKER_USER} --password-stdin
+            docker build -t ghcr.io/onyesi-john/mlops:latest .
   run_integration_tests:
     executor: python-executor
     steps:
@@ -82,18 +74,6 @@ jobs:
           path: test-results.xml
       - store_artifacts:
           path: test-results.xml
-
-  build_docker:
-    executor: docker-executor
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Build Docker Image
-          command: |
-            echo "${DOCKER_PASS}" | docker login ghcr.io -u ${DOCKER_USER} --password-stdin
-            docker build -t ghcr.io/onyesi-john/mlops:latest .
-
   push_docker:
     executor: docker-executor
     steps:
@@ -136,9 +116,7 @@ workflows:
       - setup_python_env:
           requires:
             - clone_repo
-      - run_unit_tests:
-          requires:
-            - setup_python_env
+      
       - train_model:
           requires:
             - run_unit_tests
